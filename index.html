@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Physical Chain</title>
+    <link data-trunk rel="rust" href="Cargo.toml" />
+    <script src="https://unpkg.com/three@0.158.0/build/three.min.js"></script>
+    <script src="https://unpkg.com/jsqr@1.4.0/dist/jsQR.js"></script>
+    <script>
+      // Minimal Three.js helper used by viz.rs
+      let threeCtx = null;
+      function buildFromChain(chain) {
+        if (!threeCtx) return;
+        const { scene } = threeCtx;
+        for (let i = scene.children.length - 1; i >= 0; i--) {
+          const obj = scene.children[i];
+          if (obj.userData?.isBlock) scene.remove(obj);
+        }
+        if (!chain || !Array.isArray(chain.blocks)) return;
+        const mat = new THREE.MeshBasicMaterial({ color: 0x0ea5e9 });
+        const geom = new THREE.BoxGeometry(0.4, 0.4, 0.4);
+        chain.blocks.forEach((b, i) => {
+          const cube = new THREE.Mesh(geom, mat);
+          cube.position.set(i * 0.6, Math.sin(i * 0.5) * 0.3, 0);
+          cube.userData.isBlock = true;
+          scene.add(cube);
+        });
+      }
+      function ensureRenderer() {
+        if (threeCtx) return threeCtx;
+        const container = document.getElementById('renderer');
+        if (!container) return null;
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0xf8fafc);
+        const camera = new THREE.PerspectiveCamera(60, container.clientWidth / container.clientHeight, 0.1, 100);
+        camera.position.z = 3;
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(container.clientWidth, container.clientHeight);
+        container.innerHTML = '';
+        container.appendChild(renderer.domElement);
+        const light = new THREE.DirectionalLight(0xffffff, 1);
+        light.position.set(1, 1, 1);
+        scene.add(light);
+        function onResize() {
+          const w = container.clientWidth || 300;
+          const h = container.clientHeight || 150;
+          camera.aspect = w / h;
+          camera.updateProjectionMatrix();
+          renderer.setSize(w, h);
+        }
+        window.addEventListener('resize', onResize);
+        function animate() {
+          requestAnimationFrame(animate);
+          renderer.render(scene, camera);
+        }
+        animate();
+        threeCtx = { scene, camera, renderer };
+        onResize();
+        return threeCtx;
+      }
+      window.initThree = function(chainJson) {
+        const ctx = ensureRenderer();
+        if (!ctx) return;
+        try { buildFromChain(JSON.parse(chainJson)); } catch {}
+      }
+      window.updateThree = function(chainJson) {
+        if (!ensureRenderer()) return;
+        try { buildFromChain(JSON.parse(chainJson)); } catch {}
+      }
+    </script>
+    <style>
+      html, body { height: 100%; margin: 0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; }
+      #root { height: 100%; }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+  </body>
+</html>

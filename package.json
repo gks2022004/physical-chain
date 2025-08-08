@@ -1,0 +1,10 @@
+{
+  "name": "physical-chain",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "trunk serve --open",
+    "build": "trunk build --release"
+  },
+  "devDependencies": {}
+}
