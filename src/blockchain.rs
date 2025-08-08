@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
-use wasm_bindgen::prelude::*;
+// use wasm_bindgen::prelude::*;
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct Block {
@@ -56,6 +56,10 @@ impl Chain {
             if !valid_pow(&cur.hash) { return false; }
         }
         true
+    }
+
+    pub fn has_qr_content(&self, content: &str) -> bool {
+        self.blocks.iter().any(|b| b.data.qr_content == content)
     }
 }
 

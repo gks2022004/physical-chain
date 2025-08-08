@@ -6,12 +6,23 @@ pub struct ViewportProps;
 
 #[function_component(Viewport)]
 pub fn viewport(_props: &ViewportProps) -> Html {
+    // init once
     use_effect_with((), |_| {
         // Basic Three.js init via JS global loaded from CDN in index.html
     let chain = crate::storage::load_chain();
     let json = serde_json::to_string(&chain).unwrap_or_else(|_| "{}".into());
     init_three(&json);
         || {}
+    });
+    // also update whenever storage changes (polling light)
+    use_effect_with((), |_| {
+        let interval = gloo::timers::callback::Interval::new(1000, move || {
+            let chain = crate::storage::load_chain();
+            if let Ok(json) = serde_json::to_string(&chain) {
+                update_three(&json);
+            }
+        });
+        move || drop(interval)
     });
     html!{ <div id="renderer"></div> }
 }

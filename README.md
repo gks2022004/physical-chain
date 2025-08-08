@@ -28,6 +28,12 @@ A browser-based decentralized "physical chain" where scanning a QR code becomes 
 trunk serve --open
 ```
 
+### On the phone
+```
+trunk serve --address 0.0.0.0 --port 8081
+
+```
+
 ### 3) Build for release
 ```
 trunk build --release
